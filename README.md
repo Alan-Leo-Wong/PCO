@@ -4,8 +4,10 @@
 [![Project Page](https://img.shields.io/badge/Project-Page-blue?style=flat&logo=google-chrome&logoColor=white)](https://alan-leo-wong.github.io/SIGASIA24-PCO-ProjectPage/)
 [![License: GPL](https://img.shields.io/badge/License-GPLv3.0-yellow.svg)](https://opensource.org/licenses/MIT)
 
-<img src="https://raw.githubusercontent.com/Alan-Leo-Wong/SIGASIA24-PCO-ProjectPage/main/src/assets/gallery.png" width="800" alt="PCO Github Repo Teaser Image">
-
+<div style="width:100%; margin:0 auto; text-align:center;">
+  <img src="https://raw.githubusercontent.com/Alan-Leo-Wong/SIGASIA24-PCO-ProjectPage/main/src/assets/gallery.png" 
+       style="max-width:100%; min-width:600px; height:auto; border:1px solid #eee;">
+</div>
 This repository contains the official implementation of the paper **"PCO: Precision-Controllable Offset Surfaces with Sharp Features"** accepted to _ACM Transactions on Graphics (Proceedings of SIGGRAPH ASIA 2024)_. Our method generates high-fidelity offset surfaces with preserved sharp features while maintaining user-controllable precision.
 
 ## Installation
@@ -81,4 +83,4 @@ Currently, this project is licensed under **GPLv3** due to dependencies on GPL-l
 
 ## 🐛 Known Issues
 **Current Constraints:** The quick-cliques component may occasionally fail on *complex meshes* or with *small compatible angles*. 
-We have tested the implementation, though rare edge cases may still exist. Reproducible bug reports via [GitHub Issues](https://github.com/Alan-Leo-Wong/SIGASIA24-PCO/issues) are greatly appreciated to improve robustness.
+We have tested the implementation, though rare edge cases may still exist. Reproducible bug reports via [GitHub Issues](https://github.com/Alan-Leo-Wong/PCO/issues) are greatly appreciated to improve robustness.
