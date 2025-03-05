@@ -1,0 +1,10 @@
+function(sub_dirs sub_dir_list cur_dir)
+    file(GLOB children RELATIVE ${cur_dir} ${cur_dir}/*)
+    foreach (child ${children})
+        if (IS_DIRECTORY ${cur_dir}/${child})
+            list(APPEND sub_dir_list ${cur_dir}/${child})
+        endif ()
+    endforeach ()
+    set(${sub_dir_list} "${${sub_dir_list}}" PARENT_SCOPE)
+#    return(PROPAGATE ${sub_dir_list}) # since cmake 3.25
+endfunction()

@@ -1,0 +1,11 @@
+#if (CMAKE_SYSTEM_NAME MATCHES "Windows")
+    #define PROJECT_DIR "${CMAKE_SOURCE_DIR}"
+    #define MODEL_DIR R"(${CMAKE_SOURCE_DIR}\model)"
+    #define VIS_DIR R"(${CMAKE_SOURCE_DIR}\vis)"
+    #define SHARED_PATH R"(${CMAKE_SOURCE_DIR}\data)"
+#else
+    #define PROJECT_DIR "${CMAKE_SOURCE_DIR}"
+    #define MODEL_DIR "${CMAKE_SOURCE_DIR}/model"
+    #define VIS_DIR "${CMAKE_SOURCE_DIR}/vis"
+    #define SHARED_PATH "${CMAKE_SOURCE_DIR}/data"
+#endif // WIN
