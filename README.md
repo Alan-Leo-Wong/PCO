@@ -15,10 +15,12 @@ This repository contains the official implementation of the paper **"PCO: Precis
 ### Prerequisites
 - C++17 compiler
 - CMake 3.20+
-- Eigen 3.4+
 - OpenMP (recommended for parallel computation)
+- [Eigen](https://gitlab.com/libeigen/eigen/-/releases/3.4.0) 3.4+
+- [spdlog](https://github.com/gabime/spdlog)
 - [libigl](https://github.com/libigl/libigl)
 - [CGAL](https://github.com/CGAL/cgal)
+- [implicit predicates](https://github.com/qnzhou/implicit_predicates)
 - [quick-cliques](https://github.com/darrenstrash/quick-cliques) (GPLv3 licensed)
 - [polyscope](https://github.com/nmwsharp/polyscope) (optional, enable with `ENABLE_VIEWER`)
 
