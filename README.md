@@ -2,7 +2,7 @@
 # Precision-Controllable Offset Surfaces with Sharp Features (SIGGRAPH Asia 2024)
 
 [![Project Page](https://img.shields.io/badge/Project-Page-blue?style=flat&logo=google-chrome&logoColor=white)](https://alan-leo-wong.github.io/SIGASIA24-PCO-ProjectPage/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: GPL](https://img.shields.io/badge/License-GPLv3.0-yellow.svg)](https://opensource.org/licenses/MIT)
 
 <img src="https://raw.githubusercontent.com/Alan-Leo-Wong/SIGASIA24-PCO-ProjectPage/main/src/assets/gallery.png" width="800" alt="PCO Github Repo Teaser Image">
 
@@ -55,10 +55,10 @@ cmake --build . -j your_core_num
 ### Basic Example
 ```bash
 # Basic offset generation
-./PCO -f input.obj -F output.obj -o 0.1 -d 8 --pmp
+./PCO -f input.obj -F output.obj -o 2 -d 8 --pmp
 
 # With field merging and angle threshold
-./PCO -f input.obj -F output.obj -o -0.1 -d 8 -m -c 170.0 --pmp
+./PCO -f input.obj -F output.obj -o -2 -d 8 -m -c 170.0 --pmp
 ```
 
 ## Citation
@@ -76,6 +76,9 @@ cmake --build . -j your_core_num
 ```
 
 ## License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+Currently, this project is licensed under **GPLv3** due to dependencies on GPL-licensed components. See [LICENSE](LICENSE) for full terms.
 
-**Note:** The [quick-cliques](https://github.com/darrenstrash/quick-cliques) dependency is separately licensed under GPLv3. Users are responsible for complying with both licenses when using the combined work.
+
+## 🐛 Known Issues
+**Current Constraints:** The quick-cliques component may occasionally fail on *complex meshes* or with *small compatible angles*. 
+We have tested the implementation, though rare edge cases may still exist. Reproducible bug reports via [GitHub Issues](https://github.com/Alan-Leo-Wong/SIGASIA24-PCO/issues) are greatly appreciated to improve robustness.
