@@ -14,6 +14,7 @@
 #include <igl/per_vertex_normals.h>
 #include <igl/vertex_triangle_adjacency.h>
 #include <igl/triangle_triangle_adjacency.h>
+#include <igl/signed_distance.h>
 
 #ifdef ERROR
 #   undef ERROR
@@ -115,6 +116,8 @@ NAMESPACE_BEGIN(PCO)
                 cgal_triangles[i] = Triangle(p0, p1, p2);
             }
             cgal_aabb = CGAL_AABB(cgal_triangles.begin(), cgal_triangles.end());
+
+            igl::fast_winding_number(vertMat, faceMat, 8, fwn_bvh);
         }
 
         //////////////////////
@@ -151,6 +154,26 @@ NAMESPACE_BEGIN(PCO)
             bool is_inside = (cgal_aabb.number_of_intersected_primitives(ray) % 2 == 1);
 
             return (is_inside ? -1 : 1);
+        }
+
+        Scalar TriMesh::pointPseudonormalSDF(const Vector3 &p) const {
+            // only work for watertight mesh
+            MatrixX _p(1, 3);
+            _p.row(0) = p;
+            VectorX S;
+            VectorXi I;
+            MatrixX N, C;
+            igl::signed_distance_pseudonormal(_p, vertMat, faceMat, meshAABB, faceNormalMat, vertNormalMat,
+                                              edgeNormalMat, meshEdgeMAP, S, I, C, N);
+            return S(0);
+        }
+
+        Scalar TriMesh::pointWnSDF(const Vector3 &p) const {
+            MatrixX _p(1, 3);
+            _p.row(0) = p;
+            VectorX S;
+            igl::signed_distance_fast_winding_number(_p, vertMat, faceMat, meshAABB, fwn_bvh, S);
+            return S(0);
         }
 
         //////////////////////

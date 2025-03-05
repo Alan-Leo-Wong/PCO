@@ -137,7 +137,11 @@ namespace core {
 		}
 
 #ifndef USE_SDF
-        double signed_centerDis = node->centerDis * pointSign(node->center);
+        double signed_centerDis = node->centerDis * pointSign(node->center); // use intersection test
+        /** or
+         * double signed_centerDis = pointPseudonormalSDF(node->center);
+         * double signed_centerDis = pointWnSDF(node->center);
+         * */
 
         if (isOuterOffset) {
             if (signed_centerDis >= -abs_offsetDis - minNodeWidth - circumRadius &&

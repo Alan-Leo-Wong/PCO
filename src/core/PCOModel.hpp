@@ -93,7 +93,7 @@ namespace core {
 		void createOctree(std::shared_ptr<OctreeNode>& node, const AABox<Vector3>& bbox, int depth);
 
 		/**
-		 * Calculate the local distance field contributed by each tet.
+		 * Select contributing triangles for each tet and calculate their linear distance fields for extracting offset surface.
 		 */
 		void selectContributingTris(utils::timer::TimerInterface* algo_t);
 
@@ -188,28 +188,22 @@ namespace core {
 		ConstMergeFunc constMergeFunc;
 		double COS_COMP_ANGLE;
 
-		// 关系图 G1
-		std::unordered_map<size_t, IdxToDis> contriTetToTri; // 每个四面体索引(非id)到对其有贡献的三角形的映射, 值为距离
-		std::unordered_map<size_t, IdxToDis> contriTriToTet; // 每个三角形到对其有贡献的四面体索引(非id)的映射, 值为距离
+		// G1
+		std::unordered_map<size_t, IdxToDis> contriTetToTri;
+		std::unordered_map<size_t, IdxToDis> contriTriToTet;
 
+        // G2
 		size_t numG2 = 0;
-		// 每次增量合并时所需要的数据结构
-		std::unordered_map<int, int> triFa; // 并查集每个三角形(集合)的fa数组
+		std::unordered_map<int, int> triFa;
 		std::unordered_map<int, std::unordered_set<int>> triFaToTetSet;
-		std::unordered_map<size_t, IdxToDis> surviveTetToTri; // 保存四面体索引(非id)到竞争成功的三角形(fa)的映射
-		std::unordered_map<size_t, IdxToDis> surviveTriToTet; // 保存竞争成功的三角形(fa)到四面体索引(非id)的映射
+		std::unordered_map<size_t, IdxToDis> surviveTetToTri;
+		std::unordered_map<size_t, IdxToDis> surviveTriToTet;
 
 		std::unordered_map<int, int> triToG2Idx;
 		std::unordered_map<int, int> G2IdxToTri;
 
 	private:
 		std::string out_dir;
-
-	private:
-		/* Winding number query related */
-		static constexpr int FWN_ACCURACY_SACLE = 6;
-		static constexpr double FWN_INNER_EPSLION = 1e-5;
-		static constexpr double FWN_OUTER_EPSLION = 1e-9;
 	};
 
 } // namespace core
