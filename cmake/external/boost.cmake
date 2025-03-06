@@ -5,7 +5,7 @@ endif()
 message(STATUS "Third-party: creating targets 'Boost::boost'...")
 
 cmake_minimum_required(VERSION 3.24) # Ensure modern FetchContent features
-project(BoostFetchExample)
+#project(BoostFetchExample)
 
 include(FetchContent)
 
