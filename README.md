@@ -38,7 +38,7 @@ cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
 # or
 # Optional features
-cmake .. -DENABLE_VIEWER=ON -DUSE_SDF=ON  # Enable viewer and SDF features
+cmake .. -DCMAKE_BUILD_TYPE=Release -DENABLE_VIEWER=ON -DUSE_SDF=ON  # Enable viewer and SDF features
 
 cmake --build . -j your_core_num
 ```
