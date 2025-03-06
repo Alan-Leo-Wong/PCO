@@ -2,13 +2,13 @@
 # Precision-Controllable Offset Surfaces with Sharp Features (SIGGRAPH Asia 2024)
 
 [![Project Page](https://img.shields.io/badge/Project-Page-blue?style=flat&logo=google-chrome&logoColor=white)](https://alan-leo-wong.github.io/SIGASIA24-PCO-ProjectPage/)
-[![License: GPL](https://img.shields.io/badge/License-GPLv3.0-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: GPL](https://img.shields.io/badge/License-GPLv3.0-yellow.svg)](https://opensource.org/licenses/gpl-3.0)
 
 <div style="width:100%; margin:0 auto; text-align:center;">
   <img src="https://raw.githubusercontent.com/Alan-Leo-Wong/SIGASIA24-PCO-ProjectPage/main/src/assets/gallery.png" 
        style="max-width:100%; min-width:600px; height:auto; border:1px solid #eee;">
 </div>
-This repository contains the official implementation of the paper **"PCO: Precision-Controllable Offset Surfaces with Sharp Features"** accepted to _ACM Transactions on Graphics (Proceedings of SIGGRAPH ASIA 2024)_. Our method generates high-fidelity offset surfaces with preserved sharp features while maintaining user-controllable precision.
+This repository contains the official implementation of the paper **"PCO: Precision-Controllable Offset Surfaces with Sharp Features"** accepted to *ACM Transactions on Graphics (Proceedings of SIGGRAPH ASIA 2024)*. Our method generates high-fidelity offset surfaces with preserved sharp features while maintaining user-controllable precision.
 
 ## Installation
 
