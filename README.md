@@ -16,13 +16,14 @@ This repository contains the official implementation of the paper **"PCO: Precis
 
 ### Prerequisites
 - C++17 compiler
-- CMake 3.20+
+- CMake 3.24+
 - OpenMP (recommended for parallel computation)
 - [Eigen](https://gitlab.com/libeigen/eigen/-/releases/3.4.0) 3.4+
 - [spdlog](https://github.com/gabime/spdlog)
 - [libigl](https://github.com/libigl/libigl)
 - [CGAL](https://github.com/CGAL/cgal)
 - [implicit predicates](https://github.com/qnzhou/implicit_predicates)
+- [indirect predicates](https://github.com/MarcoAttene/Indirect_Predicates)
 - [quick-cliques](https://github.com/darrenstrash/quick-cliques) (GPLv3 licensed)
 - [polyscope](https://github.com/nmwsharp/polyscope) (optional, enable with `ENABLE_VIEWER`)
 
@@ -38,9 +39,9 @@ cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
 # or
 # Optional features
-cmake .. -DENABLE_VIEWER=ON -DUSE_SDF=ON  # Enable viewer and SDF features
+cmake .. -DCMAKE_BUILD_TYPE=Release -DENABLE_VIEWER=ON -DUSE_SDF=ON  # Enable viewer and SDF features
 
-cmake --build . -j your_core_num
+make -j your_core_num
 ```
 
 ## Useage
@@ -61,7 +62,7 @@ cmake --build . -j your_core_num
 ### Basic Example
 ```bash
 # Basic offset generation
-./PCO -f input.obj -F output.obj -o 2 -d 8 --pmp
+./PCO_MAIN -f input.obj -F output.obj -o 2 -d 8 --pmp
 
 # With field merging and angle threshold
 ./PCO -f input.obj -F output.obj -o -2 -d 8 -m -c 170 --pmp
