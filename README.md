@@ -41,7 +41,7 @@ cmake .. -DCMAKE_BUILD_TYPE=Release
 # Optional features
 cmake .. -DCMAKE_BUILD_TYPE=Release -DENABLE_VIEWER=ON -DUSE_SDF=ON  # Enable viewer and SDF features
 
-cmake --build . -j your_core_num
+make -j your_core_num
 ```
 
 ## Useage
@@ -62,10 +62,10 @@ cmake --build . -j your_core_num
 ### Basic Example
 ```bash
 # Basic offset generation
-./PCO -f input.obj -F output.obj -o 2 -d 8 --pmp
+./PCO_MAIN -f input.obj -F output.obj -o 2 -d 8 --pmp
 
 # With field merging and angle threshold
-./PCO -f input.obj -F output.obj -o -2 -d 8 -m -c 170.0 --pmp
+./PCO_MAIN -f input.obj -F output.obj -o -2 -d 8 -m -c 170.0 --pmp
 ```
 
 ## Citation
