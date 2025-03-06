@@ -46,16 +46,16 @@ cmake --build . -j your_core_num
 ## Useage
 
 ### Full Parameter Specification
-| Parameter     | Description                             | Validation & Notes                                                      |
-|---------------|-----------------------------------------|-------------------------------------------------------------------------|
-| `-f,--file`   | Input model (OBJ/PLY/OFF)               | **Required**                                                            |
-| `-F,--File`   | Output path                             | **Required**                                                            |
+| Parameter     | Description                             | Validation & Notes                                           |
+| ------------- | --------------------------------------- | ------------------------------------------------------------ |
+| `-f,--file`   | Input model (OBJ/PLY/OFF)               | **Required**                                                 |
+| `-F,--File`   | Output path                             | **Required**<br />Must use .obj extension (e.g. -F file.obj) |
 | `-o,--offset` | Offset distance (% of bbox diagonal)    | **Required**<br>• Positive: outward offset<br>• Negative: inward offset |
-| `-d,--depth`  | Maximum octree depth                    | **Required**<br>• Must be ≥1 (recommend 8)                              |
-| `-m,--merge`  | Enable distance field merging           | **Required when merging**                                               |
-| `-c,--comp`   | Compatible angle threshold              | **Required with `-m`**<br>• 0°-180°                                     |
-| `--pmp`       | Use CGAL for basic mesh post-processing | **Optional**                                                            |
-| `--view`      | Enable visualization                    | **Requires `-DENABLE_VIEWER=ON`**                                           |
+| `-d,--depth`  | Maximum octree depth                    | **Required**<br>• Must be ≥1 (recommend 8)                   |
+| `-m,--merge`  | Enable distance field merging           | **Required when merging**                                    |
+| `-c,--comp`   | Compatible angle threshold              | **Required with `-m`**<br>• 0°-180°                          |
+| `--pmp`       | Use CGAL for basic mesh post-processing | **Optional**                                                 |
+| `--view`      | Enable visualization                    | **Requires `-DENABLE_VIEWER=ON`**                            |
 
 
 ### Basic Example
