@@ -46,16 +46,16 @@ cmake --build . -j your_core_num
 ## Useage
 
 ### Full Parameter Specification
-| Parameter     | Description                             | Validation & Notes                                           |
-| ------------- | --------------------------------------- | ------------------------------------------------------------ |
-| `-f,--file`   | Input model (OBJ/PLY/OFF)               | **Required**                                                 |
-| `-F,--File`   | Output path                             | **Required**<br />Must use .obj extension (e.g. -F file.obj) |
-| `-o,--offset` | Offset distance (% of bbox diagonal)    | **Required**<br>• Positive: outward offset<br>• Negative: inward offset |
-| `-d,--depth`  | Maximum octree depth                    | **Required**<br>• Must be ≥1 (recommend 8)                   |
-| `-m,--merge`  | Enable distance field merging           | **Required when merging**                                    |
-| `-c,--comp`   | Compatible angle threshold              | **Required with `-m`**<br>• 0°-180°                          |
-| `--pmp`       | Use CGAL for basic mesh post-processing | **Optional**                                                 |
-| `--view`      | Enable visualization                    | **Requires `-DENABLE_VIEWER=ON`**                            |
+| Parameter     | Description                                               | Validation & Notes                                           |
+| ------------- | --------------------------------------------------------- | ------------------------------------------------------------ |
+| `-f,--file`   | Input model (OBJ/PLY/OFF/STL...)                          | **Required**                                                 |
+| `-F,--File`   | Output path                                               | **Required**<br />Must use .obj extension (e.g. -F file.obj) |
+| `-o,--offset` | Offset distance (% of bbox diagonal)                      | **Required**<br>• Positive: outward offset<br>• Negative: inward offset (USE_SDF) |
+| `-d,--depth`  | Maximum octree depth                                      | **Required**<br>• Must be ≥1 (recommend 8)                   |
+| `-m,--merge`  | Enable distance field merging                             | **Required when merging similar fields**                     |
+| `-c,--comp`   | Compatible angle threshold (for measuring similar fields) | **Required with `-m`**<br>• 0°-180° (in degree)<br />• Larger values improve efficiency (recommend ≥165°)<br />• Complementary to paper values (e.g., paper uses 5° → set to 175°) |
+| `--pmp`       | Use CGAL for basic mesh post-processing                   | **Optional**                                                 |
+| `--view`      | Enable visualization                                      | **Requires `-DENABLE_VIEWER=ON`**                            |
 
 
 ### Basic Example
@@ -64,7 +64,7 @@ cmake --build . -j your_core_num
 ./PCO -f input.obj -F output.obj -o 2 -d 8 --pmp
 
 # With field merging and angle threshold
-./PCO -f input.obj -F output.obj -o -2 -d 8 -m -c 170.0 --pmp
+./PCO -f input.obj -F output.obj -o -2 -d 8 -m -c 170 --pmp
 ```
 
 ## Citation
