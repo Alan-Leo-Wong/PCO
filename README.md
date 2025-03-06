@@ -23,6 +23,7 @@ This repository contains the official implementation of the paper **"PCO: Precis
 - [libigl](https://github.com/libigl/libigl)
 - [CGAL](https://github.com/CGAL/cgal)
 - [implicit predicates](https://github.com/qnzhou/implicit_predicates)
+- [indirect predicates](https://github.com/MarcoAttene/Indirect_Predicates)
 - [quick-cliques](https://github.com/darrenstrash/quick-cliques) (GPLv3 licensed)
 - [polyscope](https://github.com/nmwsharp/polyscope) (optional, enable with `ENABLE_VIEWER`)
 
