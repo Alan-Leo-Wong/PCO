@@ -1,4 +1,4 @@
-###########################################
+﻿###########################################
 # Configure PCO_CORE library
 ###########################################
 
@@ -32,6 +32,12 @@ target_include_directories(${PROJECT_NAME}_CORE
 
 ###########################################
 # options
+if (USE_SDF)
+    target_compile_definitions(${PROJECT_NAME}_CORE
+            PRIVATE
+            -DUSE_SDF)
+endif ()
+
 if (USE_NON_ROBUST_COMPLEX_CUTTING)
     target_compile_definitions(${PROJECT_NAME}_CORE
             PRIVATE

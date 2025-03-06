@@ -79,10 +79,6 @@ if (ENABLE_VIEWER AND TARGET ${PROJECT_NAME}_VIEWER)
             ${PROJECT_NAME}::SURFACE_MESH)
 
     target_link_libraries(${PROJECT_NAME}_CORE
-            PRIVATE
+            PUBLIC
             ${PROJECT_NAME}::VIEWER)
-
-    target_compile_definitions(${PROJECT_NAME}_CORE
-            PRIVATE
-            ENABLE_VIEWER)
 endif ()

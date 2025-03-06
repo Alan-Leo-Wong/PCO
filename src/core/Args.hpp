@@ -23,7 +23,6 @@ namespace core {
 		bool isMerge = false;
 		double COMP_ANGLE = -1.0;
 
-        bool fastCompute = false;
 		bool postProcessing = false;
 		bool enableView = false;
 	};

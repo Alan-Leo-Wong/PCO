@@ -132,11 +132,11 @@ NAMESPACE_BEGIN(PCO)
 
             VectorX pointsUDF(const MatrixX &pts, VectorXi &closestFace, MatrixX &closestPoint) const;
 
-            int pointSign(const Vector3& p);
+            int pointSign(const Vector3& p) const;
 
-            Scalar pointPseudonormalSDF(const Vector3 &p);
+            Scalar pointPseudonormalSDF(const Vector3 &p) const;
 
-            Scalar pointWnSDF(const Vector3 &p);
+            Scalar pointWnSDF(const Vector3 &p) const;
 
         public:
             /* Low level apis */

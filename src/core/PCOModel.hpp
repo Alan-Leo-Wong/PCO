@@ -157,13 +157,6 @@ namespace core {
         void outputOffsetSurfaceFast(std::vector<Vector3f> &vertVec,
             std::vector<std::vector<size_t>> &faceVec) const;
 
-		/**
-		 * [API] Output constructed offsetting surface in .obj.
-		 * @param filename
-		 * @return
-		 */
-		bool outputOffsetSurface(const std::string& filename) const;
-
 	private:
         bool isOuterOffset;
 		double offsetDis;

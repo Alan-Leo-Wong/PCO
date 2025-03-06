@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
     std::cout << "/////////////////////////////////////////////////////////\n";
     std::cout << "//                                                     //\n";
     std::cout << "//     PCO: Precision-Controllable Offset Surfaces     //\n";
-    std::cout << "//                with Sharp Features                  //\n";
+    std::cout << "//       with Sharp Features (SIGGRAPH ASIA 2024)      //\n";
     std::cout << "//                                                     //\n";
     std::cout << "/////////////////////////////////////////////////////////\n\n";
 
@@ -25,9 +25,9 @@ int main(int argc, char **argv) {
 
     Args args;
     app.add_option("-f,--file", args.inFile,
-                   "Input model's name with extension.")->required();
+                   "Input path.")->required();
     app.add_option("-F,--File", args.outFile,
-                   "Output path of offsetting surface.");
+                   "Output path (.obj) of the offset surface.")->required();
 
     app.add_option("-o,--offset", args.offsetFactor,
                    "Specify the offset factor.")->required();
@@ -42,9 +42,9 @@ int main(int argc, char **argv) {
                         return "";
                     }), "octree check"));
 
-    app.add_flag("-m,--merge", args.isMerge);
+    app.add_flag("-m,--merge", args.isMerge, "Enable linear fields merging process to simplify the offset surface");
     app.add_option("-c,--comp", args.COMP_ANGLE,
-                   "Specify the compatible angel threshold in merging fields.")
+                   "Specify the compatible angel threshold in merging linear fields.")
             ->check(CLI::Validator(
                     std::function < std::string(std::string & ) > ([&args](std::string &val) -> std::string {
                         if (args.isMerge && (std::stod(val) < .0 || std::stod(val) > 180.0))
@@ -53,11 +53,9 @@ int main(int argc, char **argv) {
                         return "";
                     }), "merge check"));
 
-    app.add_flag("--pmp", args.postProcessing);
+    app.add_flag("--pmp", args.postProcessing, "Enable mesh post-processing");
 
-    app.add_flag("--view", args.enableView);
-
-    app.add_flag("--fast", args.fastCompute);
+    app.add_flag("--view", args.enableView, "Enable viewer via polyscope");
 
     try {
         app.parse(argc, argv);

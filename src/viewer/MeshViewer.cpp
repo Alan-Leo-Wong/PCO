@@ -1,10 +1,6 @@
-﻿//
-// Created by Lei on 2/9/2024.
-//
-#include "MeshViewer.hpp"
+﻿#include "MeshViewer.hpp"
 #include "FileDialog.hpp"
 
-#include "../../cmake-build-release/_deps/polyscope-src/deps/stb/stb_image.h"
 #include <omp.h>
 #include <polyscope/pick.h>
 #include <polyscope/volume_grid.h>
@@ -352,58 +348,6 @@ namespace viewer {
 			}
 		}
 
-		void setLocalParameterizationQuantity(MeshData& meshData, pSurfaceMesh* psMesh, bool isReg) {
-			const size_t nVertices = meshData.nVertices;
-			const size_t nFaces = meshData.nFaces;
-			const auto& vertexPositionsGLM = meshData.vertexPositionsGLM;
-
-			// Parameterizations
-			std::vector<std::array<double, 2>> cornerParam;
-			for (size_t iF = 0; iF < nFaces; iF++) {
-				const std::vector<size_t>& face = meshData.faceIndices[iF];
-				for (size_t iV : face) {
-					std::array<double, 2> p = { {vertexPositionsGLM[iV].x, vertexPositionsGLM[iV].y} };
-					cornerParam.push_back(p);
-				}
-			}
-			psMesh->addParameterizationQuantity("param test", cornerParam);
-
-			std::vector<std::array<double, 2>> vertParam;
-			for (size_t iV = 0; iV < nVertices; iV++) {
-				std::array<double, 2> p = { {vertexPositionsGLM[iV].x, vertexPositionsGLM[iV].y} };
-				vertParam.push_back(p);
-			}
-			psMesh->addVertexParameterizationQuantity("param vert test", vertParam);
-
-			// local param about vert
-			std::vector<std::array<double, 2>> vertParamLocal;
-			size_t iCenter = nVertices / 2;
-			glm::vec3 cP = vertexPositionsGLM[iCenter];
-			glm::vec3 cN = meshData.vNormals[iCenter];
-
-			// make a basis
-			glm::vec3 basisX{ 0.1234, -0.98823, .33333 }; // provably random
-			basisX = basisX - glm::dot(cN, basisX) * cN;
-			basisX = glm::normalize(basisX);
-			glm::vec3 basisY = -glm::cross(basisX, cN);
-
-			for (size_t iV = 0; iV < nVertices; iV++) {
-
-				glm::vec3 vec = vertexPositionsGLM[iV] - cP;
-
-				std::array<double, 2> p = { {glm::dot(basisX, vec), glm::dot(basisY, vec)} };
-				vertParamLocal.push_back(p);
-			}
-
-			if (isReg) {
-				meshData.vertexParameterizationQuantities["param vert local test"] = psMesh->addLocalParameterizationQuantity(
-					"param vert local test", vertParamLocal);
-			}
-			else {
-				meshData.vertexParameterizationQuantities["param vert local test"]->updateCoords(vertParamLocal);
-			}
-		}
-
 		void constructCurveNetwork(MeshData& meshData, pCurveNetwork* curveNetwork, bool isReg) {
 			const auto& edges = meshData.edges;
 			const auto& vertexPositionsGLM = meshData.vertexPositionsGLM;
@@ -486,287 +430,215 @@ namespace viewer {
 
 		void setTriMeshInternalData(bool isReg = false) {
 			// triangle mesh
-			if (!triMeshData.meshName.empty()) {
-				auto& vertexPositionsGLM = triMeshData.vertexPositionsGLM;
-				auto& faceIndices = triMeshData.faceIndices;
+			if (triMeshData.meshName.empty()) return;
+			auto& vertexPositionsGLM = triMeshData.vertexPositionsGLM;
+			auto& faceIndices = triMeshData.faceIndices;
 
-				const size_t nVertices = ourTriMesh->numVertices();
-				triMeshData.nVertices = nVertices;
-				vertexPositionsGLM.resize(triMeshData.nVertices);
-				const size_t nFaces = ourTriMesh->numFaces();
-				triMeshData.nFaces = nFaces;
-				faceIndices.resize(triMeshData.nFaces);
+			const size_t nVertices = ourTriMesh->numVertices();
+			triMeshData.nVertices = nVertices;
+			vertexPositionsGLM.resize(triMeshData.nVertices);
+			const size_t nFaces = ourTriMesh->numFaces();
+			triMeshData.nFaces = nFaces;
+			faceIndices.resize(triMeshData.nFaces);
 
-				const auto& vertMat = ourTriMesh->getVertMat();
+			const auto& vertMat = ourTriMesh->getVertMat();
 #pragma omp parallel for
-				for (int i = 0; i < nVertices; ++i) {
-					const auto& v = vertMat.row(i);
-					vertexPositionsGLM[i] = glm::vec3{
-							static_cast<float>(v(0)),
-							static_cast<float>(v(1)),
-							static_cast<float>(v(2)),
-					};
-				}
+			for (int i = 0; i < nVertices; ++i) {
+				const auto& v = vertMat.row(i);
+				vertexPositionsGLM[i] = glm::vec3{
+						static_cast<float>(v(0)),
+						static_cast<float>(v(1)),
+						static_cast<float>(v(2)),
+				};
+			}
 
-				const auto& faceMat = ourTriMesh->getFaceMat();
+			const auto& faceMat = ourTriMesh->getFaceMat();
 #pragma omp parallel for
-				for (int i = 0; i < triMeshData.nFaces; ++i) {
-					const auto& f = faceMat.row(i);
-					faceIndices[i].emplace_back(f(0));
-					faceIndices[i].emplace_back(f(1));
-					faceIndices[i].emplace_back(f(2));
-				}
+			for (int i = 0; i < triMeshData.nFaces; ++i) {
+				const auto& f = faceMat.row(i);
+				faceIndices[i].emplace_back(f(0));
+				faceIndices[i].emplace_back(f(1));
+				faceIndices[i].emplace_back(f(2));
+			}
 
+			if (isReg) {
+				psTriMesh = polyscope::registerSurfaceMesh(triMeshData.meshName, vertexPositionsGLM,
+					faceIndices);
+			}
+
+			/* add some quantities */
+			// scalar
+			internal::setVertexScalarQuantity(triMeshData, psTriMesh, isReg);
+			internal::setVertexScalarQuantity(triMeshData, psTriMesh, isReg);
+			internal::setFaceScalarQuantity(triMeshData, psTriMesh, isReg);
+			internal::setEdgeScalarQuantity(triMeshData, psTriMesh, isReg);
+
+			// vector
+			// Face & vertex normals
+			auto& fNormals = triMeshData.fNormals;
+			auto& fCenters = triMeshData.fCenters;
+			auto& vNormals = triMeshData.vNormals;
+			fNormals.clear(), fNormals.resize(nFaces);
+			fCenters.clear(), fCenters.resize(nFaces);
+			vNormals.clear(), vNormals.resize(nVertices, glm::vec3{ 0., 0., 0. });
+			const auto& faceNormalMat = ourTriMesh->getFaceNormalMat();
+			const auto& vertNormalMat = ourTriMesh->getVertNormalMat();
+#pragma omp parallel for
+			for (int iF = 0; iF < nFaces; ++iF) {
+				const std::vector<size_t>& face = faceIndices[iF];
+
+				// Compute a center (used follow)
+				glm::vec3 C = { 0., 0., 0. };
+				for (size_t iV : face) {
+					C += vertexPositionsGLM[iV];
+				}
+				C /= face.size();
+				fCenters[iF] = C;
+
+				fNormals[iF] = glm::vec3{ (float)faceNormalMat(iF, 0),
+										 (float)faceNormalMat(iF, 1),
+										 (float)faceNormalMat(iF, 2) };
+			}
+#pragma omp parallel for
+			for (int iV = 0; iV < nVertices; ++iV) {
+				vNormals[iV] = glm::vec3{ (float)vertNormalMat(iV, 0),
+										 (float)vertNormalMat(iV, 1),
+										 (float)vertNormalMat(iV, 2) };
+			}
+			internal::setNormalQuantity(triMeshData, psTriMesh, isReg);
+			internal::setIntrisicVectorQuantity(triMeshData, psTriMesh, isReg);
+
+			// Add a curve network from the edges
+			triMeshData.edges.clear();
+			for (size_t iF = 0; iF < nFaces; iF++) {
+				std::vector<size_t>& face = faceIndices[iF];
+				for (size_t iV = 0; iV < face.size(); iV++) {
+					size_t i0 = face[iV];
+					size_t i1 = face[(iV + 1) % face.size()];
+					if (i0 < i1) {
+						triMeshData.edges.push_back({ i0, i1 });
+					}
+				}
+			}
+			// Add the curve
+			if (!triMeshData.edges.empty()) {
 				if (isReg) {
-					psTriMesh = polyscope::registerSurfaceMesh(triMeshData.meshName, vertexPositionsGLM,
-						faceIndices);
+					triMeshData.curveName = triMeshData.meshName + " curves";
+					triMeshCurveNetwork = polyscope::registerCurveNetwork(triMeshData.curveName,
+						vertexPositionsGLM,
+						triMeshData.edges);
 				}
-
-				/* add some quantities */
-				// scalar
-				internal::setVertexScalarQuantity(triMeshData, psTriMesh, isReg);
-				internal::setVertexScalarQuantity(triMeshData, psTriMesh, isReg);
-				internal::setFaceScalarQuantity(triMeshData, psTriMesh, isReg);
-				internal::setEdgeScalarQuantity(triMeshData, psTriMesh, isReg);
-
-				// vector
-				// Face & vertex normals
-				auto& fNormals = triMeshData.fNormals;
-				auto& fCenters = triMeshData.fCenters;
-				auto& vNormals = triMeshData.vNormals;
-				fNormals.clear(), fNormals.resize(nFaces);
-				fCenters.clear(), fCenters.resize(nFaces);
-				vNormals.clear(), vNormals.resize(nVertices, glm::vec3{ 0., 0., 0. });
-				const auto& faceNormalMat = ourTriMesh->getFaceNormalMat();
-				const auto& vertNormalMat = ourTriMesh->getVertNormalMat();
-#pragma omp parallel for
-				for (int iF = 0; iF < nFaces; ++iF) {
-					const std::vector<size_t>& face = faceIndices[iF];
-
-					// Compute a center (used follow)
-					glm::vec3 C = { 0., 0., 0. };
-					for (size_t iV : face) {
-						C += vertexPositionsGLM[iV];
-					}
-					C /= face.size();
-					fCenters[iF] = C;
-
-					fNormals[iF] = glm::vec3{ (float)faceNormalMat(iF, 0),
-											 (float)faceNormalMat(iF, 1),
-											 (float)faceNormalMat(iF, 2) };
-				}
-#pragma omp parallel for
-				for (int iV = 0; iV < nVertices; ++iV) {
-					vNormals[iV] = glm::vec3{ (float)vertNormalMat(iV, 0),
-											 (float)vertNormalMat(iV, 1),
-											 (float)vertNormalMat(iV, 2) };
-				}
-				internal::setNormalQuantity(triMeshData, psTriMesh, isReg);
-				internal::setIntrisicVectorQuantity(triMeshData, psTriMesh, isReg);
-				internal::setLocalParameterizationQuantity(triMeshData, psTriMesh, isReg);
-
-				// Add a curve network from the edges
-				triMeshData.edges.clear();
-				for (size_t iF = 0; iF < nFaces; iF++) {
-					std::vector<size_t>& face = faceIndices[iF];
-					for (size_t iV = 0; iV < face.size(); iV++) {
-						size_t i0 = face[iV];
-						size_t i1 = face[(iV + 1) % face.size()];
-						if (i0 < i1) {
-							triMeshData.edges.push_back({ i0, i1 });
-						}
-					}
-				}
-				// Add the curve
-				if (!triMeshData.edges.empty()) {
-					if (isReg) {
-						triMeshData.curveName = triMeshData.meshName + " curves";
-						triMeshCurveNetwork = polyscope::registerCurveNetwork(triMeshData.curveName,
-							vertexPositionsGLM,
-							triMeshData.edges);
-					}
-					internal::constructCurveNetwork(triMeshData, triMeshCurveNetwork, isReg);
-				}
+				internal::constructCurveNetwork(triMeshData, triMeshCurveNetwork, isReg);
 			}
 		}
 
 		void setSurfaceMeshInternalData(bool isReg = false) {
 			// surface mesh
-			if (!surfaceMeshData.meshName.empty()) {
-				auto& vertexPositionsGLM = surfaceMeshData.vertexPositionsGLM;
-				auto& faceIndices = surfaceMeshData.faceIndices;
+			if (surfaceMeshData.meshName.empty()) return;
+			auto& vertexPositionsGLM = surfaceMeshData.vertexPositionsGLM;
+			auto& faceIndices = surfaceMeshData.faceIndices;
 
-				const size_t nVertices = ourSurfaceMesh->numVertices();
-				surfaceMeshData.nVertices = nVertices;
-				if (nVertices == 0) {
-					LOG::WARN("[PCO][Viewer] The number of surface mesh's vertices is zero, which will not be rendered.");
-					return;
-				}
-				vertexPositionsGLM.resize(nVertices);
-				const size_t nFaces = ourSurfaceMesh->numFaces();
-				surfaceMeshData.nFaces = nFaces;
-				faceIndices.resize(nFaces);
+			const size_t nVertices = ourSurfaceMesh->numVertices();
+			surfaceMeshData.nVertices = nVertices;
+			if (nVertices == 0) {
+				LOG::WARN("[PCO][Viewer] The number of surface mesh's vertices is zero, which will not be rendered.");
+				return;
+			}
+			vertexPositionsGLM.resize(nVertices);
+			const size_t nFaces = ourSurfaceMesh->numFaces();
+			surfaceMeshData.nFaces = nFaces;
+			faceIndices.resize(nFaces);
 
-				const auto& vertVec = ourSurfaceMesh->getVertVec();
+			const auto& vertVec = ourSurfaceMesh->getVertVec();
 #pragma omp parallel for
-				for (int i = 0; i < nVertices; ++i) {
-					const auto& v = vertVec.at(i);
-					vertexPositionsGLM[i] = glm::vec3{
-							static_cast<float>(v(0)),
-							static_cast<float>(v(1)),
-							static_cast<float>(v(2)),
-					};
-				}
+			for (int i = 0; i < nVertices; ++i) {
+				const auto& v = vertVec.at(i);
+				vertexPositionsGLM[i] = glm::vec3{
+						static_cast<float>(v(0)),
+						static_cast<float>(v(1)),
+						static_cast<float>(v(2)),
+				};
+			}
 
-				const auto& faceVec = ourSurfaceMesh->getFaceVec();
+			const auto& faceVec = ourSurfaceMesh->getFaceVec();
 #pragma omp parallel for
-				for (int i = 0; i < nFaces; ++i) {
-					const auto& f = faceVec.at(i);
-					faceIndices[i] = f;
-				}
+			for (int i = 0; i < nFaces; ++i) {
+				const auto& f = faceVec.at(i);
+				faceIndices[i] = f;
+			}
 
-				if (isReg) {
-					psSurfaceMesh = polyscope::registerSurfaceMesh(surfaceMeshData.meshName, vertexPositionsGLM,
-						faceIndices);
-				}
+			if (isReg) {
+				psSurfaceMesh = polyscope::registerSurfaceMesh(surfaceMeshData.meshName, vertexPositionsGLM,
+					faceIndices);
+			}
 
-				/* add some quantities */
-				// scalar
-				internal::setVertexScalarQuantity(surfaceMeshData, psSurfaceMesh, isReg);
-				internal::setFaceScalarQuantity(surfaceMeshData, psSurfaceMesh, isReg);
+			/* add some quantities */
+			// scalar
+			internal::setVertexScalarQuantity(surfaceMeshData, psSurfaceMesh, isReg);
+			internal::setFaceScalarQuantity(surfaceMeshData, psSurfaceMesh, isReg);
 
-				// vector
-				// Face & vertex normals
-				auto& fNormals = surfaceMeshData.fNormals;
-				auto& fCenters = surfaceMeshData.fCenters;
-				auto& vNormals = surfaceMeshData.vNormals;
-				fNormals.clear(), fNormals.resize(nFaces);
-				fCenters.clear(), fCenters.resize(nFaces);
-				vNormals.clear(), vNormals.resize(nVertices, glm::vec3{ 0., 0., 0. });
-				const auto& faceNormalMat = ourSurfaceMesh->getFaceNormalMat();
-				const auto& vertNormalMat = ourSurfaceMesh->getVertNormalMat();
+			// vector
+			// Face & vertex normals
+			auto& fNormals = surfaceMeshData.fNormals;
+			auto& fCenters = surfaceMeshData.fCenters;
+			auto& vNormals = surfaceMeshData.vNormals;
+			fNormals.clear(), fNormals.resize(nFaces);
+			fCenters.clear(), fCenters.resize(nFaces);
+			vNormals.clear(), vNormals.resize(nVertices, glm::vec3{ 0., 0., 0. });
+			const auto& faceNormalMat = ourSurfaceMesh->getFaceNormalMat();
+			const auto& vertNormalMat = ourSurfaceMesh->getVertNormalMat();
 #pragma omp parallel for
-				for (int iF = 0; iF < nFaces; ++iF) {
-					const std::vector<size_t>& face = faceIndices[iF];
+			for (int iF = 0; iF < nFaces; ++iF) {
+				const std::vector<size_t>& face = faceIndices[iF];
 
-					// Compute a center (used follow)
-					glm::vec3 C = { 0., 0., 0. };
-					for (size_t iV : face) {
-						C += vertexPositionsGLM[iV];
+				// Compute a center (used follow)
+				glm::vec3 C = { 0., 0., 0. };
+				for (size_t iV : face) {
+					C += vertexPositionsGLM[iV];
+				}
+				C /= face.size();
+				fCenters[iF] = C;
+
+				fNormals[iF] = glm::vec3{ (float)faceNormalMat(iF, 0),
+										 (float)faceNormalMat(iF, 1),
+										 (float)faceNormalMat(iF, 2) };
+			}
+#pragma omp parallel for
+			for (int iV = 0; iV < nVertices; ++iV) {
+				vNormals[iV] = glm::vec3{ (float)vertNormalMat(iV, 0),
+										 (float)vertNormalMat(iV, 1),
+										 (float)vertNormalMat(iV, 2) };
+			}
+			internal::setNormalQuantity(surfaceMeshData, psSurfaceMesh, isReg);
+
+			// Add a curve network from the edges
+			surfaceMeshData.edges.clear();
+			for (size_t iF = 0; iF < nFaces; iF++) {
+				std::vector<size_t>& face = faceIndices[iF];
+				for (size_t iV = 0; iV < face.size(); iV++) {
+					size_t i0 = face[iV];
+					size_t i1 = face[(iV + 1) % face.size()];
+					if (i0 < i1) {
+						surfaceMeshData.edges.push_back({ i0, i1 });
 					}
-					C /= face.size();
-					fCenters[iF] = C;
-
-					fNormals[iF] = glm::vec3{ (float)faceNormalMat(iF, 0),
-											 (float)faceNormalMat(iF, 1),
-											 (float)faceNormalMat(iF, 2) };
-				}
-#pragma omp parallel for
-				for (int iV = 0; iV < nVertices; ++iV) {
-					vNormals[iV] = glm::vec3{ (float)vertNormalMat(iV, 0),
-											 (float)vertNormalMat(iV, 1),
-											 (float)vertNormalMat(iV, 2) };
-				}
-				internal::setNormalQuantity(surfaceMeshData, psSurfaceMesh, isReg);
-				internal::setLocalParameterizationQuantity(surfaceMeshData, psSurfaceMesh, isReg);
-
-				// Add a curve network from the edges
-				surfaceMeshData.edges.clear();
-				for (size_t iF = 0; iF < nFaces; iF++) {
-					std::vector<size_t>& face = faceIndices[iF];
-					for (size_t iV = 0; iV < face.size(); iV++) {
-						size_t i0 = face[iV];
-						size_t i1 = face[(iV + 1) % face.size()];
-						if (i0 < i1) {
-							surfaceMeshData.edges.push_back({ i0, i1 });
-						}
-					}
-				}
-				// Add the curve
-				if (!surfaceMeshData.edges.empty()) {
-					if (isReg) {
-						surfaceMeshData.curveName = surfaceMeshData.meshName + " curves";
-						surfaceMeshCurveNetwork = polyscope::registerCurveNetwork(surfaceMeshData.curveName,
-							vertexPositionsGLM,
-							surfaceMeshData.edges);
-
-					}
-					internal::constructCurveNetwork(surfaceMeshData, surfaceMeshCurveNetwork, isReg);
 				}
 			}
-		}
 
-		/* some helper visualization functions */
-		void addImplicitRendersFromCurrentView() {
-			// sample sdf
-			auto torusSDF = [](glm::vec3 p) {
-				float scale = 0.5;
-				p /= scale;
-				p += glm::vec3{ 1., 0., 1. };
-				glm::vec2 t{ 1., 0.3 };
-				glm::vec2 pxz{ p.x, p.z };
-				glm::vec2 q = glm::vec2(glm::length(pxz) - t.x, p.y);
-				return (glm::length(q) - t.y) * scale;
-				};
-			auto boxFrameSDF = [](glm::vec3 p) {
-				float scale = 0.5;
-				p /= scale;
-				float b = 1.;
-				float e = 0.1;
-				p = glm::abs(p) - b;
-				glm::vec3 q = glm::abs(p + e) - e;
+			// Add the curve
+			if (!surfaceMeshData.edges.empty()) {
+				if (isReg) {
+					surfaceMeshData.curveName = surfaceMeshData.meshName + " curves";
+					surfaceMeshCurveNetwork = polyscope::registerCurveNetwork(surfaceMeshData.curveName,
+						vertexPositionsGLM,
+						surfaceMeshData.edges);
 
-				float out = glm::min(
-					glm::min(
-						glm::length(glm::max(glm::vec3(p.x, q.y, q.z), 0.0f)) +
-						glm::min(glm::max(p.x, glm::max(q.y, q.z)), 0.0f),
-						glm::length(glm::max(glm::vec3(q.x, p.y, q.z), 0.0f)) +
-						glm::min(glm::max(q.x, glm::max(p.y, q.z)), 0.0f)),
-					glm::length(glm::max(glm::vec3(q.x, q.y, p.z), 0.0f)) +
-					glm::min(glm::max(q.x, glm::max(q.y, p.z)), 0.0f));
-				return out * scale;
-				};
-
-			auto colorFunc = [](glm::vec3 p) {
-				glm::vec3 color{ 0., 0., 0. };
-				if (p.x > 0) {
-					color += glm::vec3{ 1.0, 0.0, 0.0 };
 				}
-				if (p.y > 0) {
-					color += glm::vec3{ 0.0, 1.0, 0.0 };
-				}
-				if (p.z > 0) {
-					color += glm::vec3{ 0.0, 0.0, 1.0 };
-				}
-				return color;
-				};
-
-			auto scalarFunc = [](glm::vec3 p) { return p.x; };
-
-			polyscope::ImplicitRenderOpts opts;
-			// opts.mode = polyscope::ImplicitRenderMode::FixedStep;
-			polyscope::ImplicitRenderMode mode = polyscope::ImplicitRenderMode::SphereMarch;
-			// polyscope::ImplicitRenderMode mode = polyscope::ImplicitRenderMode::FixedStep;
-			opts.subsampleFactor = 2;
-
-			polyscope::DepthRenderImageQuantity* img = polyscope::renderImplicitSurface("torus sdf", torusSDF, mode,
-				opts);
-			polyscope::DepthRenderImageQuantity* img2 = polyscope::renderImplicitSurface("box sdf", boxFrameSDF,
-				mode,
-				opts);
-			polyscope::ColorRenderImageQuantity* img2Color =
-				polyscope::renderImplicitSurfaceColor("box sdf color", boxFrameSDF, colorFunc, mode, opts);
-			polyscope::RawColorRenderImageQuantity* img2rawColor =
-				polyscope::renderImplicitSurfaceRawColor("box sdf raw color", boxFrameSDF, colorFunc, mode,
-					opts);
-			polyscope::ScalarRenderImageQuantity* imgScalar =
-				polyscope::renderImplicitSurfaceScalar("torus sdf scalar", torusSDF, scalarFunc, mode, opts);
+				internal::constructCurveNetwork(surfaceMeshData, surfaceMeshCurveNetwork, isReg);
+			}
 		}
 
 		/* callback */
 		void callback() {
-			static bool depthClick = false;
-
 			ImGui::PushItemWidth(100);
 
 			/// TODO
@@ -836,58 +708,6 @@ namespace viewer {
 			}*/
 
 			// ImGui::SameLine();
-
-			if (ImGui::Button("add implicits")) {
-				addImplicitRendersFromCurrentView();
-			}
-
-			// some depth & picking stuff
-			ImGui::Checkbox("test scene click", &depthClick);
-			if (depthClick) {
-				ImGuiIO& io = ImGui::GetIO();
-				if (io.MouseClicked[0]) {
-					glm::vec2 screenCoords{ io.MousePos.x, io.MousePos.y };
-					int xInd, yInd;
-					std::tie(xInd, yInd) = polyscope::view::screenCoordsToBufferInds(screenCoords);
-
-					glm::vec3 worldRay = polyscope::view::screenCoordsToWorldRay(screenCoords);
-					glm::vec3 worldPos = polyscope::view::screenCoordsToWorldPosition(screenCoords);
-					std::pair<polyscope::Structure*, size_t> pickPair = polyscope::pick::pickAtScreenCoords(
-						screenCoords);
-
-					std::cout << "Polyscope scene test click " << std::endl;
-					std::cout << "    io.MousePos.x: " << io.MousePos.x << " io.MousePos.y: " << io.MousePos.y
-						<< std::endl;
-					std::cout << "    screenCoords.x: " << screenCoords.x << " screenCoords.y: " << screenCoords.y
-						<< std::endl;
-					std::cout << "    bufferInd.x: " << xInd << " bufferInd.y: " << yInd << std::endl;
-					std::cout << "    worldRay: ";
-					polyscope::operator<<(std::cout, worldRay) << std::endl;
-					std::cout << "    worldPos: ";
-					polyscope::operator<<(std::cout, worldPos) << std::endl;
-					if (pickPair.first == nullptr) {
-						std::cout << "    structure: "
-							<< "none" << std::endl;
-					}
-					else {
-						std::cout << "    structure: " << pickPair.first << " element id: " << pickPair.second
-							<< std::endl;
-					}
-
-					// Construct point at click location
-					polyscope::registerPointCloud("click point", std::vector<glm::vec3>({ worldPos }));
-
-					// Construct unit-length vector pointing in the direction of the click
-					// (this depends only on the camera parameters, and does not require accessing the depth buffer)
-					glm::vec3 root = polyscope::view::getCameraWorldPosition();
-					glm::vec3 target = root + worldRay;
-					polyscope::registerCurveNetworkLine("click dir", std::vector<glm::vec3>({ root, target }));
-
-					depthClick = false;
-				}
-			}
-
-			ImGui::PopItemWidth();
 		}
 	}
 

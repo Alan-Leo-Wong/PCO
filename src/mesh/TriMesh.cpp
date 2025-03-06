@@ -147,7 +147,7 @@ NAMESPACE_BEGIN(PCO)
             return res.array().sqrt();
         }
 
-        int TriMesh::pointSign(const Vector3 &p) {
+        int TriMesh::pointSign(const Vector3 &p) const {
             Point _p = Point(p.x(), p.y(), p.z());
             Ray ray(_p, K::Vector_3(1.0, 0.0, 0.0));
 

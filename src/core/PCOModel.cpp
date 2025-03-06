@@ -51,7 +51,7 @@ namespace core {
 	}
 
 	////////////////////////
-	// Initialize Process //
+	//   Initialization   //
 	////////////////////////
 	void
 		OffsetModel::setOffsetBoundingBox() {
@@ -136,26 +136,27 @@ namespace core {
 			return;
 		}
 
-#ifndef USE_SDF
-        double signed_centerDis = node->centerDis * pointSign(node->center); // use intersection test
+#ifdef USE_SDF
+        //double signed_centerDis = node->centerDis * pointSign(node->center); // use intersection test
+		double signed_centerDis = pointPseudonormalSDF(node->center);
         /** or
          * double signed_centerDis = pointPseudonormalSDF(node->center);
          * double signed_centerDis = pointWnSDF(node->center);
          * */
 
         if (isOuterOffset) {
-            if (signed_centerDis >= -abs_offsetDis - minNodeWidth - circumRadius &&
-                signed_centerDis <= std::min(-abs_offsetDis + minNodeWidth + circumRadius,
-                                             abs_offsetDis - minNodeWidth - circumRadius)) {
+			if (signed_centerDis >= -abs_offsetDis - minNodeWidth - circumRadius &&
+				signed_centerDis <= std::min(-abs_offsetDis + minNodeWidth + circumRadius,
+					abs_offsetDis - minNodeWidth - circumRadius)) {
                 octree->allLeafNodes.emplace_back(node);
                 return;
             }
         } else {
             if (signed_centerDis >= std::max(abs_offsetDis - minNodeWidth - circumRadius,
-                                             -abs_offsetDis + minNodeWidth + circumRadius) &&
-                signed_centerDis <= abs_offsetDis + minNodeWidth + circumRadius) {
+				-abs_offsetDis + minNodeWidth + circumRadius) &&
+				signed_centerDis <= abs_offsetDis + minNodeWidth + circumRadius) {
                 octree->allLeafNodes.emplace_back(node);
-                return;
+				return;
             }
         }
 #endif
@@ -564,7 +565,7 @@ namespace core {
 			triToG2Idx[tri] = numG2;
 			G2IdxToTri[numG2++] = tri;
 		}
-		std::cout << "numG2: " << numG2 << std::endl;
+		//std::cout << "numG2: " << numG2 << std::endl;
 		for (const auto& tet_tri : surviveTetToTri)
 			updatedTets.insert(tet_tri.first);
 
@@ -655,7 +656,7 @@ namespace core {
 		timer::createTimer(&algo_t);
 
 		timer::startTimer(&algo_t);
-        minNodeWidth = (1 << (maxOctreeDepth - 1)) * (offsetBoundingBox.diagLength());
+        minNodeWidth = offsetBoundingBox.diagLength() / (1 << (maxOctreeDepth - 1));
 		createOctree(octree->root, offsetBoundingBox, 0);
 		timer::stopTimer(&algo_t);
 		LOG::INFO("[PCO] STEP[{}] - Create Octree spent {} s.",
@@ -712,9 +713,11 @@ namespace core {
 		deleteTimer(&algo_t);
 
 #ifdef ENABLE_VIEWER
-		if (args.enableView)
-			viewer::MeshViewer(modelName, this,
-				utils::file::getFileName(args.outFile), &surfaceMesh);
+		if (args.enableView) {
+			LOG::INFO("[PCO] Initialize viewer..."),
+				viewer::MeshViewer(modelName, this,
+					utils::file::getFileName(args.outFile), &surfaceMesh);
+		}
 #endif
 	}
 
@@ -758,8 +761,8 @@ namespace core {
 
 					std::vector<size_t> local_oriPlaneId;
 					std::vector<size_t> local_extPlaneId;
-					// supporting plane 若为 tet 的一个面，那即使这个面与某个外部平面重合，也仍不变
-					// 但并查集的父节点总是为最后加入的重合的外部平面 id
+					// If the supporting plane is a face of the tetrahedron, it remains unchanged even if coinciding with an external plane.
+					// The union-find parent node is always the ID of the last added coinciding external plane.
 					(v[0] <= 3) ? local_oriPlaneId.push_back(v[0]) : local_extPlaneId.push_back(v[0]);
 					(v[1] <= 3) ? local_oriPlaneId.push_back(v[1]) : local_extPlaneId.push_back(v[1]);
 					(v[2] <= 3) ? local_oriPlaneId.push_back(v[2]) : local_extPlaneId.push_back(v[2]);
@@ -775,13 +778,13 @@ namespace core {
 						face.emplace_back(innerVertToOutIdx.at(iv));
 					}
 					else if (numOriPlane == 1) {
-						// 首先得到两个外部面(包括和这个supporting plane重合的面)的global id
+						// First, obtain the global IDs of the two external faces, including the one coinciding with the supporting plane.
 						size_t local_extFaceId_0 = coplanar_planes.find(local_extPlaneId[0]);
 						size_t local_extFaceId_1 = coplanar_planes.find(local_extPlaneId[1]);
 						size_t global_extFaceId_0 = global_extPlaneId.at(local_extFaceId_0 - 4);
 						size_t global_extFaceId_1 = global_extPlaneId.at(local_extFaceId_1 - 4);
 
-						// 再得到一个内部面的global id
+						// Next, retrieve the global ID of the internal face.
 						size_t global_oriFaceId = complexCut.global_oriFacesId[local_oriPlaneId[0]];
 
 						if (global_extFaceId_0 > global_extFaceId_1)
@@ -796,11 +799,11 @@ namespace core {
 						face.emplace_back(faceVertToOutIdx.at(support_planes));
 					}
 					else if (numOriPlane == 2) {
-						// 首先得到外部面(包括和这个supporting plane重合的面)的global id
+						// First, obtain the global ID of the external face, including the one coinciding with the supporting plane.
 						size_t local_extFaceId = coplanar_planes.find(local_extPlaneId[0]);
 						size_t global_extFaceId = global_extPlaneId.at(local_extFaceId - 4);
 
-						// 再得到两个内部面的公共边的local id
+						// Next, retrieve the local ID of the shared edge between the two internal faces.
 						const auto& plane_edges_0 = complexCut.oriFacesEdges[local_oriPlaneId[0]];
 						const auto& plane_edges_1 = complexCut.oriFacesEdges[local_oriPlaneId[1]];
 
@@ -814,7 +817,7 @@ namespace core {
 							}
 							if (local_edgeId != -1) break;
 						}
-						// 再得到公共边的global id
+						// Then, obtain the global ID of the shared edge.
 						size_t global_edgeId = complexCut.global_oriEdgesId[local_edgeId];
 
 						SPlanesEdge support_plane_edge = { global_extFaceId, global_edgeId };
@@ -840,8 +843,11 @@ namespace core {
 
 				auto sorted_face = face;
 				std::sort(sorted_face.begin(), sorted_face.end());
-				if (!finalFace.contains(face)) {
-					finalFace.insert(face);
+				if (!finalFace.contains(sorted_face)) {
+					finalFace.insert(sorted_face);
+#ifdef USE_SDF
+					if (!isOuterOffset) std::reverse(face.begin(), face.end());
+#endif // USE_SDF
 					faceVec.emplace_back(face);
 				}
 			}
@@ -866,128 +872,6 @@ namespace core {
 					vertVec.push_back(offsetSurfaceVerticesCoord.at(iv).cast<float>());
 				}
 				faceVec.push_back(face);
-			}
-		}
-	}
-
-	bool OffsetModel::outputOffsetSurface(const std::string& filename) const {
-		utils::file::checkDir(filename);
-		std::ofstream out(filename);
-		if (!out) {
-			LOG::ERROR("[PCO][I/O] File \"{}\" could not be opened!", filename);
-			return false;
-		}
-		LOG::INFO("[PCO][I/O] Output offsetting surface to \"{}\" ...", filename);
-
-		using SPlanes = std::array<size_t, 3>; // global supporting planes
-		using SPlanesEdge = std::array<size_t, 2>; // global supporting plane and edge idx
-
-		size_t vertCnt = 1;
-
-		std::unordered_map<SPlanes, size_t> faceVertToOutIdx; // 2 outer planes + 1 inner plane
-		std::unordered_map<SPlanesEdge, size_t> edgeVertToOutIdx; // 1 outer plane + 2 inner planes
-		std::unordered_map<size_t, size_t> tetVertToOutIdx; // 3 inner planes
-
-		for (auto offsetSurfaceBuilder : tetOffsetSurface) {
-			const auto& complexCut = offsetSurfaceBuilder.get_complex();
-			const auto& coplanar_planes = offsetSurfaceBuilder.get_coplanar_planes();
-			const auto& global_extPlaneId = offsetSurfaceBuilder.get_global_extPlaneId();
-			const auto& offsetSurface = offsetSurfaceBuilder.get_offset_surface();
-			const auto& offsetSurfaceFaces = offsetSurface.faces;
-			const auto& offsetSurfaceVertices = offsetSurface.vertices;
-			const auto& offsetSurfaceVerticesCoord = offsetSurface.vertices_coord;
-
-			// std::cout << "num faces: " << offsetSurfaceFaces.size() << std::endl;
-			std::unordered_map<size_t, size_t> innerVertToOutIdx; // first key is the local id of vertex (3 outter planes)
-			for (const auto& f : offsetSurfaceFaces) {
-				if (f.supporting_plane == OffsetSurface::None) continue;
-				// std::cout << "f.vertices.size: " << f.vertices.size() << std::endl;
-				std::stringstream face_ss;
-				face_ss << "f";
-				for (int k = 0; k < f.vertices.size(); ++k) {
-					size_t iv = f.vertices[k];
-					const auto& v = offsetSurfaceVertices.at(iv);
-
-					std::vector<size_t> local_oriPlaneId;
-					std::vector<size_t> local_extPlaneId;
-					// supporting plane 若为 tet 的一个面，那即使这个面与某个外部平面重合，也仍不变
-					// 但并查集的父节点总是为最后加入的重合的外部平面 id
-					(v[0] <= 3) ? local_oriPlaneId.push_back(v[0]) : local_extPlaneId.push_back(v[0]);
-					(v[1] <= 3) ? local_oriPlaneId.push_back(v[1]) : local_extPlaneId.push_back(v[1]);
-					(v[2] <= 3) ? local_oriPlaneId.push_back(v[2]) : local_extPlaneId.push_back(v[2]);
-					int numOriPlane = local_oriPlaneId.size();
-
-					if (numOriPlane == 0) {
-						if (!innerVertToOutIdx.count(iv)) {
-							innerVertToOutIdx[iv] = vertCnt++;
-							out << "v " << offsetSurfaceVerticesCoord.at(iv).transpose() << "\n";
-						}
-						else {
-						}
-						face_ss << " " << innerVertToOutIdx.at(iv);
-					}
-					else if (numOriPlane == 1) {
-						// 首先得到两个外部面(包括和这个supporting plane重合的面)的global id
-						size_t local_extFaceId_0 = coplanar_planes.find(local_extPlaneId[0]);
-						size_t local_extFaceId_1 = coplanar_planes.find(local_extPlaneId[1]);
-						size_t global_extFaceId_0 = global_extPlaneId.at(local_extFaceId_0 - 4);
-						size_t global_extFaceId_1 = global_extPlaneId.at(local_extFaceId_1 - 4);
-
-						// 再得到一个内部面的global id
-						size_t global_oriFaceId = complexCut.global_oriFacesId[local_oriPlaneId[0]];
-
-						SPlanes support_planes = { global_extFaceId_0, global_extFaceId_1, global_oriFaceId };
-						if (!faceVertToOutIdx.count(support_planes)) {
-							faceVertToOutIdx[support_planes] = vertCnt++;
-							out << "v " << offsetSurfaceVerticesCoord.at(iv).transpose() << "\n";
-						}
-						else {
-						}
-						face_ss << " " << faceVertToOutIdx.at(support_planes);
-					}
-					else if (numOriPlane == 2) {
-						// 首先得到外部面(包括和这个supporting plane重合的面)的global id
-						size_t local_extFaceId = coplanar_planes.find(local_extPlaneId[0]);
-						size_t global_extFaceId = global_extPlaneId.at(local_extFaceId - 4);
-
-						// 再得到两个内部面的公共边的local id
-						const auto& plane_edges_0 = complexCut.oriFacesEdges[local_oriPlaneId[0]];
-						const auto& plane_edges_1 = complexCut.oriFacesEdges[local_oriPlaneId[1]];
-
-						int local_edgeId = -1;
-						for (int i = 0; i < 3; ++i) {
-							for (int j = 0; j < 3; ++j) {
-								if (plane_edges_0[i] == plane_edges_1[j]) {
-									local_edgeId = plane_edges_0[i];
-									break;
-								}
-							}
-							if (local_edgeId != -1) break;
-						}
-						// 再得到公共边的global id
-						size_t global_edgeId = complexCut.global_oriEdgesId[local_edgeId];
-
-						SPlanesEdge support_plane_edge = { global_extFaceId, global_edgeId };
-						if (!edgeVertToOutIdx.count(support_plane_edge)) {
-							edgeVertToOutIdx[support_plane_edge] = vertCnt++;
-							out << "v " << offsetSurfaceVerticesCoord.at(iv).transpose() << "\n";
-						}
-						else {
-						}
-						face_ss << " " << edgeVertToOutIdx.at(support_plane_edge);
-					}
-					else {
-						size_t global_verticesId = f.global_verticesId.at(k);
-						if (!tetVertToOutIdx.count(global_verticesId)) {
-							tetVertToOutIdx[global_verticesId] = vertCnt++;
-							out << "v " << offsetSurfaceVerticesCoord.at(iv).transpose() << "\n";
-						}
-						else {
-						}
-						face_ss << " " << tetVertToOutIdx.at(global_verticesId);
-					}
-				}
-				out << face_ss.str() << "\n";
 			}
 		}
 	}

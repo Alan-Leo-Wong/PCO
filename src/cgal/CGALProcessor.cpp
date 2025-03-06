@@ -321,7 +321,7 @@ NAMESPACE_BEGIN(PCO)
 
             CGALMesh cgalMesh;
             PMP::polygon_soup_to_polygon_mesh(points, polygons, cgalMesh);
-            PMP::triangulate_faces(cgalMesh);
+            //PMP::triangulate_faces(cgalMesh);
 
             internal::to_ours(cgalMesh, surfaceMesh);
         }

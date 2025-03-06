@@ -210,6 +210,7 @@ NAMESPACE_BEGIN(PCO)
         void SurfaceMesh::processOffsetMesh() {
             repairMesh();
             // checkMesh();
+            setInternalData();
         }
 
         void SurfaceMesh::extractOffsetMesh() {
