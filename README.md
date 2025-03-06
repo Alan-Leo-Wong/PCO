@@ -16,7 +16,7 @@ This repository contains the official implementation of the paper **"PCO: Precis
 
 ### Prerequisites
 - C++17 compiler
-- CMake 3.20+
+- CMake 3.24+
 - OpenMP (recommended for parallel computation)
 - [Eigen](https://gitlab.com/libeigen/eigen/-/releases/3.4.0) 3.4+
 - [spdlog](https://github.com/gabime/spdlog)
